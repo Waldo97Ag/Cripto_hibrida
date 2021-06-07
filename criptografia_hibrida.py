@@ -8,6 +8,12 @@ from Crypto.Hash import SHA256
 from Crypto.Hash import SHA1
 from Crypto.Signature import pkcs1_15
 
+import json
+from base64 import b64encode
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
+from Crypto.Random import get_random_bytes
+
 raiz=Tk()
 raiz.title("Hybrid Cryptography")
 raiz.resizable(0,0)
@@ -76,7 +82,13 @@ def seleccionar_funcion():
         combo_sel=combo.get()
         message_sent = message.get()
         if combo_sel == "Cipher":
-            pass
+            message_sent = message.get()   #Mensaje que Alicia manda
+            message_file = open("message_s.txt", "w",encoding='utf-8')
+            with open('message.txt') as f:       
+                message_file.write(message_sent) #Escribir mensaje a archivo
+                message_file.close()
+            message_as_bytes = read_file_content_as_bytes('message.txt')
+            encrypt_AES_CBC(message_as_bytes)   
 
         elif combo_sel == "Decipher":
             pass
@@ -87,7 +99,7 @@ def seleccionar_funcion():
             pass
 
         elif combo_sel == "Cipher & Signature":
-            pass
+            message_sent = message.get()
 
         elif combo_sel == "Decipher & Verification":
             pass
@@ -114,6 +126,25 @@ start.place(x=50,y=180)
 
 sel=Button(raiz, text="Generate Keys",command=generar_llaves)
 sel.place(x=200,y=180)
+
+def read_file_content_as_bytes(file):
+    with open(file) as f:
+        content = f.readlines()
+        content_bytes = str.encode(content)
+
+    return content_bytes
+
+
+def encrypt_AES_CBC(data):
+    
+    key = get_random_bytes(16)
+    cipher = AES.new(key, AES.MODE_CBC)
+    ct_bytes = cipher.encrypt(pad(data, AES.block_size))
+    iv = b64encode(cipher.iv).decode('utf-8')
+    ct = b64encode(ct_bytes).decode('utf-8')
+    result = json.dumps({'iv':iv, 'ciphertext':ct})
+    print(result)
+
 
 # def generate_digest(message):
 #     h = SHA1.new()
