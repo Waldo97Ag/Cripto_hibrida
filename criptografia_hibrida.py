@@ -80,10 +80,10 @@ def generar_llaves():
 def seleccionar_funcion():
         
         combo_sel=combo.get()
-        message_sent = message.get()
+        
         if combo_sel == "Cipher":
             message_sent = message.get()   #Mensaje que Alicia manda
-            message_file = open("message_s.txt", "w",encoding='utf-8')
+            message_file = open("message.txt", "w",encoding='utf-8')
             with open('message.txt') as f:       
                 message_file.write(message_sent) #Escribir mensaje a archivo
                 message_file.close()
@@ -130,6 +130,7 @@ sel.place(x=200,y=180)
 def read_file_content_as_bytes(file):
     with open(file) as f:
         content = f.readlines()
+        content = ''.join(content)
         content_bytes = str.encode(content)
 
     return content_bytes
