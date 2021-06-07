@@ -50,7 +50,7 @@ message.place(x=250, y=140)
 def generar_llaves():
     key_alice = RSA.generate(2048)
     private_key_alice = key_alice.export_key()
-    file_out = open("private_candy.pem", "wb")
+    file_out = open("private_alice.pem", "wb")
     file_out.write(private_key_alice)
     file_out.close()
 
