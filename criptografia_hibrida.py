@@ -74,7 +74,7 @@ def generar_llaves():
 def seleccionar_funcion():
         
         combo_sel=combo.get()
-        message = message.get()
+        message_sent = message.get()
         if combo_sel == "Cipher":
             pass
 
@@ -86,10 +86,10 @@ def seleccionar_funcion():
         elif combo_sel == "Verification":
             pass
 
-        elif combo_sel == "Signature":
+        elif combo_sel == "Cipher & Signature":
             pass
 
-        elif combo_sel == "Verification":
+        elif combo_sel == "Decipher & Verification":
             pass
 
 
