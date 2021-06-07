@@ -10,8 +10,10 @@ from Crypto.Signature import pkcs1_15
 
 import json
 from base64 import b64encode
+from base64 import b64decode
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
+from Crypto.Util.Padding import unpad
 from Crypto.Random import get_random_bytes
 
 raiz=Tk()
@@ -88,7 +90,8 @@ def seleccionar_funcion():
                 message_file.write(message_sent) #Escribir mensaje a archivo
                 message_file.close()
             message_as_bytes = read_file_content_as_bytes('message.txt')
-            encrypt_AES_CBC(message_as_bytes)   
+            iv_ct, key = encrypt_AES_CBC(message_as_bytes)
+            decrypt_AES_CBC(iv_ct, key)   
 
         elif combo_sel == "Decipher":
             pass
@@ -145,6 +148,18 @@ def encrypt_AES_CBC(data):
     ct = b64encode(ct_bytes).decode('utf-8')
     result = json.dumps({'iv':iv, 'ciphertext':ct})
     print(result)
+    return result, key
+
+def decrypt_AES_CBC(json_input,key): #Recibe vector iv y texto cifrado
+    try:
+        b64 = json.loads(json_input)
+        iv = b64decode(b64['iv'])
+        ct = b64decode(b64['ciphertext'])
+        cipher = AES.new(key, AES.MODE_CBC, iv)
+        pt = unpad(cipher.decrypt(ct), AES.block_size)
+        print("The message was: ", pt)
+    except (ValueError, KeyError):
+        print("Incorrect decryption")
 
 
 # def generate_digest(message):
