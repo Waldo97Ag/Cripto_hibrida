@@ -85,7 +85,7 @@ def seleccionar_funcion():
         
         if combo_sel == "Cipher":
             message_sent = message.get()   #Mensaje que Alicia manda
-            message_file = open("message.txt", "w",encoding='utf-8')
+            message_file = open("message.txt", "w",encoding='ISO-8859-1')
             with open('message.txt') as f:       
                 message_file.write(message_sent) #Escribir mensaje a archivo
                 message_file.close()
@@ -95,8 +95,12 @@ def seleccionar_funcion():
 
         elif combo_sel == "Decipher":
             decrypt_AES_CBC(iv_ct, key)   
+
         elif combo_sel == "Signature":
-            pass
+            message_sent = message.get()   #Mensaje que Alicia manda
+            encoded_string = message_sent.encode('ISO-8859-1')
+            message_to_sign = generate_digest(encoded_string)
+            signature_v = generate_signature(message_to_sign)
 
         elif combo_sel == "Verification":
             pass
@@ -144,8 +148,8 @@ def encrypt_AES_CBC(data):
     key = get_random_bytes(16)
     cipher = AES.new(key, AES.MODE_CBC)
     ct_bytes = cipher.encrypt(pad(data, AES.block_size))
-    iv = b64encode(cipher.iv).decode('utf-8')
-    ct = b64encode(ct_bytes).decode('utf-8')
+    iv = b64encode(cipher.iv).decode('ISO-8859-1')
+    ct = b64encode(ct_bytes).decode('ISO-8859-1')
     result = json.dumps({'iv':iv, 'ciphertext':ct})
     print(result)
     return result, key #Esta madre es la que se cifra con RSA
@@ -165,7 +169,7 @@ def decrypt_AES_CBC(json_input,key): #Recibe vector iv y texto cifrado
 def cipher_AES_key_with_RSA(data):
     file_out = open("message.txt", "ab")
 
-    recipient_key = RSA.import_key(open("public_alice.pem").read())
+    recipient_key = RSA.import_key(open("public_bob.pem").read())
     session_key = get_random_bytes(16)
 
     # Encrypt the session key with the public RSA key
@@ -179,41 +183,55 @@ def cipher_AES_key_with_RSA(data):
     [ file_out.write(x) for x in (enc_session_key, cipher_aes.nonce, tag, ciphertext) ]
     file_out.close()
 
-# def generate_digest(message):
-#     h = SHA1.new()
-#     h.update(message)
+def decipher_AES_key_with_RSA():
+    file_in = open("message.txt", "rb")
+    file_in = ''.join(file_in)
+    archivo_dividido = file_in.split("\n\n")
+    
+    #Falta verificar si se divide bien el archivo en 3 con el doble \n\n como separador
+    private_key = RSA.import_key(open("private_bob.pem").read())
 
-#     return h.hexdigest()
+    enc_session_key, nonce, tag, ciphertext = \
+   [ file_in.read(x) for x in (private_key.size_in_bytes(), 16, 16, -1) ]
 
-# def generate_signature(message_to_sign):
-#     print("Generating Signature")
-#     key = RSA.import_key(open('private_candy.pem').read())
-#     message_to_sign = message_to_sign.encode("ISO-8859-1")
-#     h = SHA256.new(message_to_sign)
-#     signature = pkcs1_15.new(key).sign(h)
-#     message_signed = signature.decode("ISO-8859-1")
+# Decrypt the session key with the private RSA key
+    cipher_rsa = PKCS1_OAEP.new(private_key)
+    session_key = cipher_rsa.decrypt(enc_session_key)
 
-#     signed_file = open("message_s.txt", "w",encoding='utf-8')
-#     with open('strawberry.txt') as f:
-#         message_strawberry = f.readlines()
-#         message_strawberry = ''.join(message_strawberry)
-#     signed_file.write(message_strawberry)
-#     signed_file.write("\n\n")
-#     signed_file.write(message_signed)
-#     signed_file.close()
+    # Decrypt the data with the AES session key
+    cipher_aes = AES.new(session_key, AES.MODE_EAX, nonce)
+    data = cipher_aes.decrypt_and_verify(ciphertext, tag)
+    print(data.decode("ISO-8859-1"))
 
+def generate_digest(message):
+    h = SHA1.new()
+    h.update(message)
 
+    return h.hexdigest()
 
-#     return signature
+def generate_signature(message_to_sign):
+    print("Generating Signature")
+    key = RSA.import_key(open('private_alice.pem').read())
+    message_to_sign = message_to_sign.encode("ISO-8859-1")
+    h = SHA256.new(message_to_sign)
+    signature = pkcs1_15.new(key).sign(h)
+    message_signed = signature.decode("ISO-8859-1")
 
-# def verify_signature(message, signature_v):
-#     key = RSA.import_key(open('public_alice.pem').read())
-#     message = message.encode("ISO-8859-1")
-#     h = SHA256.new(message)
-#     try:
-#         pkcs1_15.new(key).verify(h, signature_v)
-#         messagebox.showinfo("Success","Message verified correctly valid signature")
-#     except (ValueError, TypeError) as e:
-#         messagebox.showinfo("Error","Signature not valid")
+    signed_file = open("message.txt", "a",encoding='ISO-8859-1')
+    signed_file.write("\n\n")
+    signed_file.write(message_signed)
+    signed_file.close()
+
+    return signature
+
+def verify_signature(message, signature_v):
+    key = RSA.import_key(open('public_alice.pem').read())
+    message = message.encode("ISO-8859-1")
+    h = SHA256.new(message)
+    try:
+        pkcs1_15.new(key).verify(h, signature_v)
+        messagebox.showinfo("Success","Message verified correctly valid signature")
+    except (ValueError, TypeError) as e:
+        messagebox.showinfo("Error","Signature not valid")
 
 raiz.mainloop()
