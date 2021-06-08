@@ -187,7 +187,7 @@ def cipher_AES_key_with_RSA(data):
     file_out.close()
 
 def decipher_AES_key_with_RSA():
-    file_in = open("message.txt", "r",encoding='ISO-8859-1')
+    file_in = open("message.txt", "rb")
     #file_in = ''.join(file_in)
     mensaje,llave_AES,Firma = file_in.read().split("\n\nFIN")
     print(llave_AES)
