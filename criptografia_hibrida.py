@@ -15,6 +15,8 @@ from base64 import b64decode
 from Crypto.Util.Padding import pad
 from Crypto.Util.Padding import unpad
 
+iv_ct, key = None, None
+
 
 raiz=Tk()
 raiz.title("Hybrid Cryptography")
@@ -80,7 +82,7 @@ def generar_llaves():
 
 
 def seleccionar_funcion():
-        
+        global iv_ct, key
         combo_sel=combo.get()
         
         if combo_sel == "Cipher":
