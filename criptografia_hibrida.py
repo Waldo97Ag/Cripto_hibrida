@@ -7,14 +7,14 @@ from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA256
 from Crypto.Hash import SHA1
 from Crypto.Signature import pkcs1_15
-
+from Crypto.Random import get_random_bytes
+from Crypto.Cipher import AES, PKCS1_OAEP
 import json
 from base64 import b64encode
 from base64 import b64decode
-from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 from Crypto.Util.Padding import unpad
-from Crypto.Random import get_random_bytes
+
 
 raiz=Tk()
 raiz.title("Hybrid Cryptography")
@@ -91,10 +91,10 @@ def seleccionar_funcion():
                 message_file.close()
             message_as_bytes = read_file_content_as_bytes('message.txt')
             iv_ct, key = encrypt_AES_CBC(message_as_bytes)
-            decrypt_AES_CBC(iv_ct, key)   
+            cipher_AES_key_with_RSA(key)
 
         elif combo_sel == "Decipher":
-            pass
+            decrypt_AES_CBC(iv_ct, key)   
         elif combo_sel == "Signature":
             pass
 
@@ -148,7 +148,7 @@ def encrypt_AES_CBC(data):
     ct = b64encode(ct_bytes).decode('utf-8')
     result = json.dumps({'iv':iv, 'ciphertext':ct})
     print(result)
-    return result, key
+    return result, key #Esta madre es la que se cifra con RSA
 
 def decrypt_AES_CBC(json_input,key): #Recibe vector iv y texto cifrado
     try:
@@ -161,6 +161,23 @@ def decrypt_AES_CBC(json_input,key): #Recibe vector iv y texto cifrado
     except (ValueError, KeyError):
         print("Incorrect decryption")
 
+
+def cipher_AES_key_with_RSA(data):
+    file_out = open("message.txt", "ab")
+
+    recipient_key = RSA.import_key(open("public_alice.pem").read())
+    session_key = get_random_bytes(16)
+
+    # Encrypt the session key with the public RSA key
+    cipher_rsa = PKCS1_OAEP.new(recipient_key)
+    enc_session_key = cipher_rsa.encrypt(session_key)
+
+# Encrypt the data with the AES session key
+    cipher_aes = AES.new(session_key, AES.MODE_EAX)
+    ciphertext, tag = cipher_aes.encrypt_and_digest(data)
+    file_out.write(b"\n\n")
+    [ file_out.write(x) for x in (enc_session_key, cipher_aes.nonce, tag, ciphertext) ]
+    file_out.close()
 
 # def generate_digest(message):
 #     h = SHA1.new()
