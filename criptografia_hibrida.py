@@ -190,7 +190,8 @@ def decipher_AES_key_with_RSA():
     file_in = ''.join(file_in)
     archivo_dividido = file_in.split("\n\n")
     
-    #Falta verificar si se divide bien el archivo en 3 con el doble \n\n como separador
+    #Falta verificar si se divide bien el archivo en 3 con el doble \n\n como separador y trabajar
+    #con la parte de enmedio que es la que se debe descifrar nada más
     private_key = RSA.import_key(open("private_bob.pem").read())
 
     enc_session_key, nonce, tag, ciphertext = \
@@ -219,7 +220,7 @@ def generate_signature(message_to_sign):
     signature = pkcs1_15.new(key).sign(h)
     message_signed = signature.decode("ISO-8859-1")
 
-    signed_file = open("message.txt", "a",encoding='ISO-8859-1')
+    signed_file = open("message.txt", "a",encoding='ISO-8859-1') #Concatenando la firma después de dos saltos de linea
     signed_file.write("\n\n")
     signed_file.write(message_signed)
     signed_file.close()
