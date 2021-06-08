@@ -84,11 +84,11 @@ def generar_llaves():
 def seleccionar_funcion():
         global iv_ct, key
         combo_sel=combo.get()
-        
+
         if combo_sel == "Cipher":
             message_sent = message.get()   #Mensaje que Alicia manda
             message_file = open("message.txt", "w",encoding='ISO-8859-1')
-            with open('message.txt') as f:       
+            with open('message.txt') as f:
                 message_file.write(message_sent) #Escribir mensaje a archivo
                 message_file.close()
             message_as_bytes = read_file_content_as_bytes('message.txt')
@@ -96,7 +96,8 @@ def seleccionar_funcion():
             cipher_AES_key_with_RSA(key)
 
         elif combo_sel == "Decipher":
-            decrypt_AES_CBC(iv_ct, key)   
+            decipher_AES_key_with_RSA()
+            decrypt_AES_CBC(iv_ct, key)
 
         elif combo_sel == "Signature":
             message_sent = message.get()   #Mensaje que Alicia manda
@@ -146,7 +147,7 @@ def read_file_content_as_bytes(file):
 
 
 def encrypt_AES_CBC(data):
-    
+
     key = get_random_bytes(16)
     cipher = AES.new(key, AES.MODE_CBC)
     ct_bytes = cipher.encrypt(pad(data, AES.block_size))
@@ -181,31 +182,33 @@ def cipher_AES_key_with_RSA(data):
 # Encrypt the data with the AES session key
     cipher_aes = AES.new(session_key, AES.MODE_EAX)
     ciphertext, tag = cipher_aes.encrypt_and_digest(data)
-    file_out.write(b"\n\n")
+    file_out.write(b"\n\nFIN")
     [ file_out.write(x) for x in (enc_session_key, cipher_aes.nonce, tag, ciphertext) ]
     file_out.close()
 
 def decipher_AES_key_with_RSA():
-    file_in = open("message.txt", "rb")
-    file_in = ''.join(file_in)
-    archivo_dividido = file_in.split("\n\n")
-    
-    #Falta verificar si se divide bien el archivo en 3 con el doble \n\n como separador y trabajar
-    #con la parte de enmedio que es la que se debe descifrar nada más
+    file_in = open("message.txt", "r",encoding='ISO-8859-1')
+    #file_in = ''.join(file_in)
+    mensaje,llave_AES,Firma = file_in.read().split("\n\nFIN")
+    print(llave_AES)
+    file_out = open("message1.txt", "w",encoding='ISO-8859-1')
+    file_out.write(llave_AES)
     private_key = RSA.import_key(open("private_bob.pem").read())
+        #Falta verificar si se divide bien el archivo en 3 con el doble \n\n como separador y trabajar
+    #con la parte de enmedio que es la que se debe descifrar nada más
+    key_in = open("message1.txt", "rb")
 
     enc_session_key, nonce, tag, ciphertext = \
-   [ file_in.read(x) for x in (private_key.size_in_bytes(), 16, 16, -1) ]
+    [ key_in.read(x) for x in (private_key.size_in_bytes(), 16, 16, -1) ]
 
 # Decrypt the session key with the private RSA key
     cipher_rsa = PKCS1_OAEP.new(private_key)
     session_key = cipher_rsa.decrypt(enc_session_key)
 
     # Decrypt the data with the AES session key
-    cipher_aes = AES.new(session_key, AES.MODE_EAX, nonce)
-    data = cipher_aes.decrypt_and_verify(ciphertext, tag)
-    print(data.decode("ISO-8859-1"))
-
+    # cipher_aes = AES.new(session_key, AES.MODE_EAX, nonce)
+    # data = cipher_aes.decrypt_and_verify(ciphertext, tag)
+    # print(data.decode("ISO-8859-1"))
 def generate_digest(message):
     h = SHA1.new()
     h.update(message)
@@ -221,7 +224,7 @@ def generate_signature(message_to_sign):
     message_signed = signature.decode("ISO-8859-1")
 
     signed_file = open("message.txt", "a",encoding='ISO-8859-1') #Concatenando la firma después de dos saltos de linea
-    signed_file.write("\n\n")
+    signed_file.write("\n\nFIN")
     signed_file.write(message_signed)
     signed_file.close()
 
