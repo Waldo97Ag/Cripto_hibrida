@@ -182,16 +182,16 @@ def cipher_AES_key_with_RSA(data):
 # Encrypt the data with the AES session key
     cipher_aes = AES.new(session_key, AES.MODE_EAX)
     ciphertext, tag = cipher_aes.encrypt_and_digest(data)
-    file_out.write(b"\n\n")
+    file_out.write(b"\n\nFIN")
     [ file_out.write(x) for x in (enc_session_key, cipher_aes.nonce, tag, ciphertext) ]
     file_out.close()
 
 def decipher_AES_key_with_RSA():
     file_in = open("message.txt", "r",encoding='ISO-8859-1')
     #file_in = ''.join(file_in)
-    mensaje,llave_AES,Firma = file_in.read().split("\n\n")
-    file_out = open("message1.txt", "w",encoding='ISO-8859-1')
-    file_out.write(llave_AES)
+    mensaje,llave_AES,Firma = file_in.read().split("\n\nFIN")
+    file_out = open("message1.txt", "wb")
+    file_out.write(bytes(llave_AES, 'ISO-8859-1'))
     file_out.close()
     private_key = RSA.import_key(open("private_bob.pem").read())
         #Falta verificar si se divide bien el archivo en 3 con el doble \n\n como separador y trabajar
@@ -201,9 +201,9 @@ def decipher_AES_key_with_RSA():
         [ key_in.read(x) for x in (private_key.size_in_bytes(), 16, 16, -1) ]
 
     print(enc_session_key)
-    print(nonce)
-    print(tag)
-    print(ciphertext)
+    #print(nonce)
+    #print(tag)
+    #print(ciphertext)
 # Decrypt the session key with the private RSA key
     cipher_rsa = PKCS1_OAEP.new(private_key)
     session_key = cipher_rsa.decrypt(enc_session_key)
@@ -227,7 +227,7 @@ def generate_signature(message_to_sign):
     message_signed = signature.decode("ISO-8859-1")
 
     signed_file = open("message.txt", "a",encoding='ISO-8859-1') #Concatenando la firma después de dos saltos de linea
-    signed_file.write("\n\n")
+    signed_file.write("\n\nFIN")
     signed_file.write(message_signed)
     signed_file.close()
 
