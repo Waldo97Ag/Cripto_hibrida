@@ -228,7 +228,7 @@ def decipher_AES_key_with_RSA():
     #file_in=bytes(f,'ISO-8859-1')
     mensaje,llave_AES1,Firma = file_in.split("\nFIN")
     file_in1.close()
-    llave_AES=llave_AES1[:-1:]
+    llave_AES=llave_AES1[::]
     file_out = open("message1.txt", "wb")
     file_out.write(bytes(llave_AES, 'ISO-8859-1'))
     file_out.close()
@@ -263,7 +263,7 @@ def generate_digest(message):
 
 def generate_signature(message_to_sign):
     print("Generating Signature")
-    key = RSA.import_key(open('alicia/private_alice.pem').read())
+    key = RSA.import_key(open('candy/private_candy.pem').read())
     message_to_sign = message_to_sign.encode("ISO-8859-1")
     h = SHA256.new(message_to_sign)
     #print(h.hexdigest())
