@@ -109,10 +109,23 @@ def seleccionar_funcion():
             verify_signature(message_to_sign,signature_v)
 
         elif combo_sel == "Cipher & Signature":
-            message_sent = message.get()
+            message_sent = message.get()   #Mensaje que Alicia manda
+            message_file = open("message.txt", "w",encoding='ISO-8859-1')
+            with open('message.txt') as f:
+                message_file.write(message_sent) #Escribir mensaje a archivo
+                message_file.close()
+            message_as_bytes = read_file_content_as_bytes('message.txt')
+            iv_ct, key = encrypt_AES_CBC(message_as_bytes)
+            cipher_AES_key_with_RSA(key)
+            encoded_string = message_sent.encode('ISO-8859-1')
+            message_to_sign = generate_digest(encoded_string)
+            signature_v = generate_signature(message_to_sign)
 
         elif combo_sel == "Decipher & Verification":
-            pass
+            key_session=decipher_AES_key_with_RSA()
+            decrypt_AES_CBC(iv_ct, key_session)
+            verify_signature(message_to_sign,signature_v)
+
 
 
         else:
