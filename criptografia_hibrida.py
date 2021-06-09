@@ -96,8 +96,8 @@ def seleccionar_funcion():
             cipher_AES_key_with_RSA(key)
 
         elif combo_sel == "Decipher":
-            decipher_AES_key_with_RSA()
-            decrypt_AES_CBC(iv_ct, key)
+            key_session=decipher_AES_key_with_RSA()
+            decrypt_AES_CBC(iv_ct, key_session)
 
         elif combo_sel == "Signature":
             message_sent = message.get()   #Mensaje que Alicia manda
@@ -182,14 +182,19 @@ def cipher_AES_key_with_RSA(data):
 # Encrypt the data with the AES session key
     cipher_aes = AES.new(session_key, AES.MODE_EAX)
     ciphertext, tag = cipher_aes.encrypt_and_digest(data)
-    file_out.write(b"\n\nFIN")
+    file_out.write(b"\nFIN")
     [ file_out.write(x) for x in (enc_session_key, cipher_aes.nonce, tag, ciphertext) ]
     file_out.close()
 
 def decipher_AES_key_with_RSA():
-    file_in = open("message.txt", "r",encoding='ISO-8859-1')
+    file_in1 = open("message.txt", "rb")
+    f=file_in1.read()
+    #file_in=file_in1.decode('ISO-8859-1')
     #file_in = ''.join(file_in)
-    mensaje,llave_AES,Firma = file_in.read().split("\n\nFIN")
+    file_in=f.decode('ISO-8859-1')
+    #file_in=bytes(f,'ISO-8859-1')
+    mensaje,llave_AES,Firma = file_in.split("\nFIN")
+    file_in1.close()
     file_out = open("message1.txt", "wb")
     file_out.write(bytes(llave_AES, 'ISO-8859-1'))
     file_out.close()
@@ -200,7 +205,7 @@ def decipher_AES_key_with_RSA():
     enc_session_key, nonce, tag, ciphertext = \
         [ key_in.read(x) for x in (private_key.size_in_bytes(), 16, 16, -1) ]
 
-    print(enc_session_key.decode('ISO-8859-1'))
+    #print(enc_session_key.decode('ISO-8859-1'))
     #print(nonce)
     #print(tag)
     #print(ciphertext)
@@ -212,6 +217,7 @@ def decipher_AES_key_with_RSA():
     cipher_aes = AES.new(session_key, AES.MODE_EAX, nonce)
     data = cipher_aes.decrypt_and_verify(ciphertext, tag)
     print(data.decode("ISO-8859-1"))
+    return session_key
 def generate_digest(message):
     h = SHA1.new()
     h.update(message)
@@ -227,7 +233,7 @@ def generate_signature(message_to_sign):
     message_signed = signature.decode("ISO-8859-1")
 
     signed_file = open("message.txt", "a",encoding='ISO-8859-1') #Concatenando la firma después de dos saltos de linea
-    signed_file.write("\n\nFIN")
+    signed_file.write("\nFIN")
     signed_file.write(message_signed)
     signed_file.close()
 
