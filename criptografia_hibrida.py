@@ -124,10 +124,11 @@ def seleccionar_funcion():
             message_sent = message.get()   #Mensaje que Alicia manda
             message_file = open("message.txt", "w",encoding='ISO-8859-1')
             with open('message.txt') as f:
-                message_file.write(message_sent) #Escribir mensaje a archivo
+                message_as_bytes=bytes(message_sent,'ISO-8859-1')
+                #message_as_bytes = read_file_content_as_bytes('message.txt')
+                iv_ct, key,ct = encrypt_AES_CBC(message_as_bytes)
+                message_file.write(ct) #Escribir mensaje a archivo
                 message_file.close()
-            message_as_bytes = read_file_content_as_bytes('message.txt')
-            iv_ct, key = encrypt_AES_CBC(message_as_bytes)
             cipher_AES_key_with_RSA(key)
             encoded_string = message_sent.encode('ISO-8859-1')
             message_to_sign = generate_digest(encoded_string)
@@ -188,7 +189,7 @@ def decrypt_AES_CBC(json_input,key): #Recibe vector iv y texto cifrado
         b64 = json.loads(json_input)
         iv = b64decode(b64['iv'])
         ct = b64decode(b64['ciphertext'])
-        print(ct.decode('ISO-8859-1'))
+        #print(ct.decode('ISO-8859-1'))
         cipher = AES.new(key, AES.MODE_CBC, iv)
         pt1 = unpad(cipher.decrypt(ct), AES.block_size)
         pt=pt1.decode('ISO-8859-1')
