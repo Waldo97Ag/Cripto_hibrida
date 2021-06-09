@@ -200,7 +200,7 @@ def decipher_AES_key_with_RSA():
     enc_session_key, nonce, tag, ciphertext = \
         [ key_in.read(x) for x in (private_key.size_in_bytes(), 16, 16, -1) ]
 
-    print(enc_session_key)
+    print(enc_session_key.decode('ISO-8859-1'))
     #print(nonce)
     #print(tag)
     #print(ciphertext)
