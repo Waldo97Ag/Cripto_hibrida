@@ -163,7 +163,8 @@ def decrypt_AES_CBC(json_input,key): #Recibe vector iv y texto cifrado
         iv = b64decode(b64['iv'])
         ct = b64decode(b64['ciphertext'])
         cipher = AES.new(key, AES.MODE_CBC, iv)
-        pt = unpad(cipher.decrypt(ct), AES.block_size)
+        pt1 = unpad(cipher.decrypt(ct), AES.block_size)
+        pt=pt1.decode('ISO-8859-1')
         print("The message was: ", pt)
     except (ValueError, KeyError):
         print("Incorrect decryption")
@@ -182,8 +183,12 @@ def cipher_AES_key_with_RSA(data):
 # Encrypt the data with the AES session key
     cipher_aes = AES.new(session_key, AES.MODE_EAX)
     ciphertext, tag = cipher_aes.encrypt_and_digest(data)
-    file_out.write(b"\nFIN")
+    file_out.write(bytes("\nFIN", 'ISO-8859-1'))
     [ file_out.write(x) for x in (enc_session_key, cipher_aes.nonce, tag, ciphertext) ]
+    #print(enc_session_key)
+    #print(cipher_aes.nonce)
+    #print(tag)
+    #print(ciphertext)
     file_out.close()
 
 def decipher_AES_key_with_RSA():
@@ -193,8 +198,9 @@ def decipher_AES_key_with_RSA():
     #file_in = ''.join(file_in)
     file_in=f.decode('ISO-8859-1')
     #file_in=bytes(f,'ISO-8859-1')
-    mensaje,llave_AES,Firma = file_in.split("\nFIN")
+    mensaje,llave_AES1,Firma = file_in.split("\nFIN")
     file_in1.close()
+    llave_AES=llave_AES1[:-1:]
     file_out = open("message1.txt", "wb")
     file_out.write(bytes(llave_AES, 'ISO-8859-1'))
     file_out.close()
@@ -206,7 +212,10 @@ def decipher_AES_key_with_RSA():
         [ key_in.read(x) for x in (private_key.size_in_bytes(), 16, 16, -1) ]
 
     #print(enc_session_key.decode('ISO-8859-1'))
+    #print(enc_session_key)
     #print(nonce)
+    #print(tag)
+    #print(ciphertext)
     #print(tag)
     #print(ciphertext)
 # Decrypt the session key with the private RSA key
@@ -216,8 +225,8 @@ def decipher_AES_key_with_RSA():
     # Decrypt the data with the AES session key
     cipher_aes = AES.new(session_key, AES.MODE_EAX, nonce)
     data = cipher_aes.decrypt_and_verify(ciphertext, tag)
-    print(data.decode("ISO-8859-1"))
-    return session_key
+    #print(data.decode("ISO-8859-1"))
+    return data
 def generate_digest(message):
     h = SHA1.new()
     h.update(message)
