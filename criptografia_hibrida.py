@@ -60,24 +60,35 @@ message.place(x=250, y=140)
 def generar_llaves():
     key_alice = RSA.generate(2048)
     private_key_alice = key_alice.export_key()
-    file_out = open("private_alice.pem", "wb")
+    file_out = open("alicia/private_alice.pem", "wb")
     file_out.write(private_key_alice)
     file_out.close()
 
     public_key_alice = key_alice.publickey().export_key()
-    file_out = open("public_alice.pem", "wb")
+    file_out = open("alicia/public_alice.pem", "wb")
     file_out.write(public_key_alice)
     file_out.close()
 
     key_bob = RSA.generate(2048)
     private_key_bob = key_bob.export_key()
-    file_out = open("private_bob.pem", "wb")
+    file_out = open("betito/private_bob.pem", "wb")
     file_out.write(private_key_bob)
     file_out.close()
 
     public_key_bob = key_bob.publickey().export_key()
-    file_out = open("public_bob.pem", "wb")
+    file_out = open("betito/public_bob.pem", "wb")
     file_out.write(public_key_bob)
+    file_out.close()
+
+    key_candy = RSA.generate(2048)
+    private_key_candy = key_candy.export_key()
+    file_out = open("candy/private_candy.pem", "wb")
+    file_out.write(private_key_candy)
+    file_out.close()
+
+    public_key_candy = key_candy.publickey().export_key()
+    file_out = open("candy/public_candy.pem", "wb")
+    file_out.write(public_key_candy)
     file_out.close()
 
 
@@ -186,7 +197,7 @@ def decrypt_AES_CBC(json_input,key): #Recibe vector iv y texto cifrado
 def cipher_AES_key_with_RSA(data):
     file_out = open("message.txt", "ab")
 
-    recipient_key = RSA.import_key(open("public_bob.pem").read())
+    recipient_key = RSA.import_key(open("betito/public_bob.pem").read())
     session_key = get_random_bytes(16)
 
     # Encrypt the session key with the public RSA key
@@ -217,7 +228,7 @@ def decipher_AES_key_with_RSA():
     file_out = open("message1.txt", "wb")
     file_out.write(bytes(llave_AES, 'ISO-8859-1'))
     file_out.close()
-    private_key = RSA.import_key(open("private_bob.pem").read())
+    private_key = RSA.import_key(open("betito/private_bob.pem").read())
         #Falta verificar si se divide bien el archivo en 3 con el doble \n\n como separador y trabajar
     #con la parte de enmedio que es la que se debe descifrar nada más
     key_in = open("message1.txt", "rb")
@@ -248,7 +259,7 @@ def generate_digest(message):
 
 def generate_signature(message_to_sign):
     print("Generating Signature")
-    key = RSA.import_key(open('private_alice.pem').read())
+    key = RSA.import_key(open('alicia/private_alice.pem').read())
     message_to_sign = message_to_sign.encode("ISO-8859-1")
     h = SHA256.new(message_to_sign)
     print(h.hexdigest())
@@ -267,7 +278,7 @@ def verify_signature(message, signature_v):
     print("Verifying signature")
     print(message)
     print(signature_v)
-    key = RSA.import_key(open('public_alice.pem').read())
+    key = RSA.import_key(open('alicia/public_alice.pem').read())
     message = message.encode('ISO-8859-1')
     h = SHA256.new(message)
     print(h.hexdigest())
